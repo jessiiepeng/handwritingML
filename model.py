@@ -5,16 +5,16 @@
 # TensorFlow and tf.keras
 import tensorflow as tf
 
+# Tensorflow JS for web apps
+import tensorflowjs as tfjs
+
 #Helper libraries
 import numpy as np
 import matplotlib.pyplot as plt
-
-print(tf.__version__)
+import pathlib
 
 # Pandas dataframes
 import pandas as pd
-
-print(pd.__version__)
 
 # Create dataframe using dataset
 df = pd.read_csv('A_Z Handwritten Data.csv')
@@ -79,6 +79,9 @@ model.compile(optimizer='adam',
               metrics=['accuracy'])
 
 model.fit(train_images, train_labels, epochs=10)
+
+# Converting to TF.js : https://www.tensorflow.org/js/tutorials/conversion/import_keras
+tfjs.converters.save_keras_model(model, pathlib.Path().absolute())
 
 #EVALUATING ACCURACY
 test_loss, test_acc = model.evaluate(test_images,  test_labels, verbose=2)
@@ -156,3 +159,4 @@ def plot_value_array(i, predictions_array, true_label):
 
 # plot_value_array(i, predictions_single[0], test_labels.iloc[i].item())
 # _ = plt.xticks(range(26), class_names, rotation=45)
+
