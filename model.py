@@ -18,7 +18,6 @@ print(pd.__version__)
 
 # Create dataframe using dataset
 df = pd.read_csv('A_Z Handwritten Data.csv')
-print(df)
 
 #0-25 = labels, so 0 = A, 25 = Z
 #First column = label column
@@ -43,3 +42,14 @@ test_images = test.iloc[:, 1:]
 #dataset dimensions: (372450, 785)
 #train_labels: (297960, 1)
 #train_images: (297960, 784)
+
+#PREPROCESS THE DATA
+plt.figure()
+#reshape Series back into 28 x 28
+reshaped = train_images.iloc[0].values.reshape(28, 28)
+plt.imshow(reshaped)
+plt.colorbar()
+plt.grid(False)
+plt.show()
+
+
