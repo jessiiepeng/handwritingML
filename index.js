@@ -16,7 +16,7 @@ const model = await tf.loadLayersModel('http://127.0.0.1:5500/model.json');
 // }
 
 
-document.getElementById("butt").addEventListener("click", clickFunction);
+document.getElementById("butt").addEventListener("click", resize);
 
 function clickFunction() {
   // preprocess image to make it 28 by 28, grey scale
@@ -28,16 +28,21 @@ function clickFunction() {
 }
 
 // https://enlight.nyc/projects/web-paint
-var canvas = document.getElementById("canvas");
+var srcCanvas = document.getElementById("src");
+var destCanvas = document.getElementById("dest");
 
-var ctx = canvas.getContext("2d");
+
+var srcCtx = $("#src")[0].getContext("2d");
+var destCtx = $("#dest")[0].getContext("2d");
+
+
 //resize();
 
-// resize canvas when window is resized
-function resize() {
-  ctx.canvas.width = window.innerWidth;
-  ctx.canvas.height = window.innerHeight;
-}
+// // resize canvas when window is resized
+// function resize() {
+//   ctx.canvas.width = window.innerWidth;
+//   ctx.canvas.height = window.innerHeight;
+// }
 
 // initialize position as 0,0
 var pos = { x: 0, y: 0 };
@@ -53,17 +58,17 @@ function draw(e) {
 
   //var color = document.getElementById("hex").value;
 
-  ctx.beginPath(); // begin the drawing path
+  srcCtx.beginPath(); // begin the drawing path
 
-  ctx.lineWidth = 20; // width of line
-  ctx.lineCap = "round"; // rounded end cap
+  srcCtx.lineWidth = 20; // width of line
+  srcCtx.lineCap = "round"; // rounded end cap
   //ctx.strokeStyle = color; // hex color of line
 
-  ctx.moveTo(pos.x, pos.y); // from position
+  srcCtx.moveTo(pos.x, pos.y); // from position
   setPosition(e);
-  ctx.lineTo(pos.x, pos.y); // to position
+  srcCtx.lineTo(pos.x, pos.y); // to position
 
-  ctx.stroke(); // draw it!
+  srcCtx.stroke(); // draw it!
 }
 
 
@@ -76,6 +81,55 @@ document.addEventListener("mousedown", setPosition);
 document.addEventListener("mouseenter", setPosition);
 
 document.getElementById("erase").addEventListener("click", eraseFunction);
+
 function eraseFunction() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // transformed coordinates: https://stackoverflow.com/questions/2142535/how-to-clear-the-canvas-for-redrawing
+  destCtx.save();
+  destCtx.setTransform(1, 0, 0, 1, 0, 0);
+  destCtx.clearRect(0, 0, destCanvas.width, destCanvas.height);
+  //destCtx.restore();
+  srcCtx.clearRect(0, 0, srcCanvas.width, srcCanvas.height);
+  
 }
+
+// Used from http://jsfiddle.net/Hm2xq/2/ + https://stackoverflow.com/questions/3448347/how-to-scale-an-imagedata-in-html-canvas/3449416#3449416
+function resize() {
+  var imageData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height)
+  var newCanvas = $("<canvas>").attr("width", 560)
+.attr("height", 560)[0];
+  newCanvas.getContext("2d").putImageData(imageData, 0, 0);
+  destCtx.scale(0.05, 0.05);
+  destCtx.drawImage(newCanvas, 0, 0);
+
+  var destImageData = destCtx.getImageData(0, 0, destCanvas.width, destCanvas.height);
+  // imagedata object: r g b a (0, 1, 2 ,3) for first pixel
+  // 28 x 28 = 784 pixels so 784 x 4 = 3136 - starting from 0 index so 3135
+  console.log(destImageData);
+}
+
+// advice from: https://stackoverflow.com/questions/17945972/converting-rgba-values-into-one-integer-in-javascript
+function revertRGBA(red, green, blue, alpha) {
+  var r = red & 0xFF;
+  var g = green & 0xFF;
+  var b = blue & 0xFF;
+  var a = alpha & 0xFF;
+
+  var rgb = (r << 24) + (g << 16) + (b << 8) + (a);   
+  return rgb;
+}
+
+function processImgData(imgData) {
+  var imgArray = []; // want a 784-long array
+  for(i = 1; i <= 784; i++) {
+    var red = imgData[4 * (i - 1)];
+    var green = imgData[1 + 4 * (i - 1)];
+    var blue = imgData[2 + 4 * (i - 1)];
+    var alpha = imgData[3 + 4 * (i - 1)];
+    imgArray.push(revertRGBA(red, green, blue, alpha));
+  }
+
+}
+
+
+
+
