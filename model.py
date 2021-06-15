@@ -56,6 +56,9 @@ test_images = test.iloc[:, 1:]
 train_images = train_images / 255.0
 test_images = test_images / 255.0
 
+newTrain = train_images.astype('float32')
+newTest = test_images.astype('float32')
+
 
 # plt.figure(figsize=(10,10))
 # for i in range(25):
@@ -78,19 +81,19 @@ model.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
-model.fit(train_images, train_labels, epochs=10)
+model.fit(newTrain, train_labels, epochs=10)
 
 # Converting to TF.js : https://www.tensorflow.org/js/tutorials/conversion/import_keras
 tfjs.converters.save_keras_model(model, pathlib.Path().absolute())
 
 #EVALUATING ACCURACY
-test_loss, test_acc = model.evaluate(test_images,  test_labels, verbose=2)
+test_loss, test_acc = model.evaluate(newTest,  test_labels, verbose=2)
 print('\nTest accuracy:', test_acc)
 
 #MAKING PREDICTIONS
 probability_model = tf.keras.Sequential([model, 
                                          tf.keras.layers.Softmax()])
-predictions = probability_model.predict(test_images)
+predictions = probability_model.predict(newTest)
 
 print(predictions[0])
 print(np.argmax(predictions[0]))

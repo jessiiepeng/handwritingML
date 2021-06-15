@@ -104,7 +104,16 @@ function resize() {
   var destImageData = destCtx.getImageData(0, 0, destCanvas.width, destCanvas.height);
   // imagedata object: r g b a (0, 1, 2 ,3) for first pixel
   // 28 x 28 = 784 pixels so 784 x 4 = 3136 - starting from 0 index so 3135
-  console.log(destImageData);
+
+  var tensor = tf.tensor(processImgData(destImageData), [1, 784]);
+  console.log(tensor);
+  console.log(model.predict(tensor)); 
+
+  var prediction = model.predict(tensor);
+  console.log("predicted");
+  console.log(prediction);
+
+
 }
 
 // advice from: https://stackoverflow.com/questions/17945972/converting-rgba-values-into-one-integer-in-javascript
@@ -120,13 +129,14 @@ function revertRGBA(red, green, blue, alpha) {
 
 function processImgData(imgData) {
   var imgArray = []; // want a 784-long array
-  for(i = 1; i <= 784; i++) {
+  for(var i = 1; i <= 784; i++) {
     var red = imgData[4 * (i - 1)];
     var green = imgData[1 + 4 * (i - 1)];
     var blue = imgData[2 + 4 * (i - 1)];
     var alpha = imgData[3 + 4 * (i - 1)];
     imgArray.push(revertRGBA(red, green, blue, alpha));
   }
+  return imgArray;
 
 }
 
