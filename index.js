@@ -15,6 +15,8 @@ const model = await tf.loadLayersModel('http://127.0.0.1:5500/model.json');
 //   console.log(result);
 // }
 
+const class_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 
+'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
 document.getElementById("butt").addEventListener("click", resize);
 
@@ -106,14 +108,33 @@ function resize() {
   // 28 x 28 = 784 pixels so 784 x 4 = 3136 - starting from 0 index so 3135
 
   var tensor = tf.tensor(processImgData(destImageData), [1, 784]);
-  console.log(tensor);
-  console.log(model.predict(tensor)); 
-
   var prediction = model.predict(tensor);
-  console.log("predicted");
   console.log(prediction);
 
+  prediction.print();
+ 
+  var jsArray = prediction.dataSync();
+ 
+  const max = Math.max(...jsArray);
+  console.log("Max ", max);
+  var index;
+  for (var i = 0; i < 25; i++) {
+    if (jsArray[i] == max) {
+      index = i;
+    }
+  }
+  // console.log(tf.argMax(prediction, 0).print()); <-- figure out why this no work
+  console.log(index);
+  console.log(class_names[index]);
+  
+ 
+ 
+  
 
+}
+
+function getPrediction() {
+  
 }
 
 // advice from: https://stackoverflow.com/questions/17945972/converting-rgba-values-into-one-integer-in-javascript
