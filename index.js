@@ -86,7 +86,7 @@ document.getElementById("erase").addEventListener("click", eraseFunction);
 
 function eraseFunction() {
   // transformed coordinates: https://stackoverflow.com/questions/2142535/how-to-clear-the-canvas-for-redrawing
-  destCtx.save();
+  //destCtx.save();
   destCtx.setTransform(1, 0, 0, 1, 0, 0);
   destCtx.clearRect(0, 0, destCanvas.width, destCanvas.height);
   //destCtx.restore();
@@ -97,6 +97,8 @@ function eraseFunction() {
 // Used from http://jsfiddle.net/Hm2xq/2/ + https://stackoverflow.com/questions/3448347/how-to-scale-an-imagedata-in-html-canvas/3449416#3449416
 function resize() {
   var imageData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height)
+  const isAllZero = imageData.data.every(item => item === 0);
+
   var newCanvas = $("<canvas>").attr("width", 560)
 .attr("height", 560)[0];
   newCanvas.getContext("2d").putImageData(imageData, 0, 0);
@@ -107,16 +109,16 @@ function resize() {
   // imagedata object: r g b a (0, 1, 2 ,3) for first pixel
   // 28 x 28 = 784 pixels so 784 x 4 = 3136 - starting from 0 index so 3135
 
-  var tensor = tf.tensor(processImgData(destImageData), [1, 784]);
-  var prediction = model.predict(tensor);
-  console.log(prediction);
+  makePrediction(destImageData);
 
-  prediction.print();
- 
+}
+
+function makePrediction(destImageData) {
+  var tensor = tf.tensor(processImgData(destImageData.data), [1, 784]);
+  var prediction = model.predict(tensor);
   var jsArray = prediction.dataSync();
  
   const max = Math.max(...jsArray);
-  console.log("Max ", max);
   var index;
   for (var i = 0; i < 25; i++) {
     if (jsArray[i] == max) {
@@ -124,18 +126,10 @@ function resize() {
     }
   }
   // console.log(tf.argMax(prediction, 0).print()); <-- figure out why this no work
-  console.log(index);
   console.log(class_names[index]);
-  
- 
- 
-  
-
 }
 
-function getPrediction() {
-  
-}
+
 
 // advice from: https://stackoverflow.com/questions/17945972/converting-rgba-values-into-one-integer-in-javascript
 function revertRGBA(red, green, blue, alpha) {
@@ -145,6 +139,7 @@ function revertRGBA(red, green, blue, alpha) {
   var a = alpha & 0xFF;
 
   var rgb = (r << 24) + (g << 16) + (b << 8) + (a);   
+  rgb = rgb / 255.0;
   return rgb;
 }
 
@@ -157,6 +152,7 @@ function processImgData(imgData) {
     var alpha = imgData[3 + 4 * (i - 1)];
     imgArray.push(revertRGBA(red, green, blue, alpha));
   }
+  
   return imgArray;
 
 }
