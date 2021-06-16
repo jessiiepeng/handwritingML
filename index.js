@@ -18,33 +18,15 @@ const model = await tf.loadLayersModel('http://127.0.0.1:5500/model.json');
 const class_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 
 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
-document.getElementById("butt").addEventListener("click", resize);
+document.getElementById("butt").addEventListener("click", makePrediction);
 
-function clickFunction() {
-  // preprocess image to make it 28 by 28, grey scale
-  // run into model
-  // const example = tf.fromPixels(webcamElement);  // for example
-  // const prediction = model.predict(example);
-  // display predictions on screen
-  document.getElementById("pred").innerHTML = "Change to prediction!!!";
-}
 
 // https://enlight.nyc/projects/web-paint
 var srcCanvas = document.getElementById("src");
 var destCanvas = document.getElementById("dest");
 
-
 var srcCtx = $("#src")[0].getContext("2d");
 var destCtx = $("#dest")[0].getContext("2d");
-
-
-//resize();
-
-// // resize canvas when window is resized
-// function resize() {
-//   ctx.canvas.width = window.innerWidth;
-//   ctx.canvas.height = window.innerHeight;
-// }
 
 // initialize position as 0,0
 var pos = { x: 0, y: 0 };
@@ -62,7 +44,7 @@ function draw(e) {
 
   srcCtx.beginPath(); // begin the drawing path
 
-  srcCtx.lineWidth = 20; // width of line
+  srcCtx.lineWidth = 35; // width of line
   srcCtx.lineCap = "round"; // rounded end cap
   //ctx.strokeStyle = color; // hex color of line
 
@@ -73,9 +55,6 @@ function draw(e) {
   srcCtx.stroke(); // draw it!
 }
 
-
-// add window event listener to trigger when window is resized
-window.addEventListener("resize", resize);
 
 // add event listeners to trigger on different mouse events
 document.addEventListener("mousemove", draw);
@@ -97,7 +76,6 @@ function eraseFunction() {
 // Used from http://jsfiddle.net/Hm2xq/2/ + https://stackoverflow.com/questions/3448347/how-to-scale-an-imagedata-in-html-canvas/3449416#3449416
 function resize() {
   var imageData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height)
-  const isAllZero = imageData.data.every(item => item === 0);
 
   var newCanvas = $("<canvas>").attr("width", 560)
 .attr("height", 560)[0];
@@ -109,11 +87,13 @@ function resize() {
   // imagedata object: r g b a (0, 1, 2 ,3) for first pixel
   // 28 x 28 = 784 pixels so 784 x 4 = 3136 - starting from 0 index so 3135
 
-  makePrediction(destImageData);
+  return destImageData;
 
 }
 
-function makePrediction(destImageData) {
+function makePrediction() {
+
+  var destImageData = resize();
   var tensor = tf.tensor(processImgData(destImageData.data), [1, 784]);
   var prediction = model.predict(tensor);
   var jsArray = prediction.dataSync();
@@ -127,21 +107,9 @@ function makePrediction(destImageData) {
   }
   // console.log(tf.argMax(prediction, 0).print()); <-- figure out why this no work
   console.log(class_names[index]);
+  document.getElementById("pred").innerHTML = class_names[index];
 }
 
-
-
-// advice from: https://stackoverflow.com/questions/17945972/converting-rgba-values-into-one-integer-in-javascript
-function revertRGBA(red, green, blue, alpha) {
-  var r = red & 0xFF;
-  var g = green & 0xFF;
-  var b = blue & 0xFF;
-  var a = alpha & 0xFF;
-
-  var rgb = (r << 24) + (g << 16) + (b << 8) + (a);   
-  rgb = rgb / 255.0;
-  return rgb;
-}
 
 function processImgData(imgData) {
   var imgArray = []; // want a 784-long array
@@ -157,6 +125,17 @@ function processImgData(imgData) {
 
 }
 
+// advice from: https://stackoverflow.com/questions/17945972/converting-rgba-values-into-one-integer-in-javascript
+function revertRGBA(red, green, blue, alpha) {
+  var r = red & 0xFF;
+  var g = green & 0xFF;
+  var b = blue & 0xFF;
+  var a = alpha & 0xFF;
+
+  var rgb = (r << 24) + (g << 16) + (b << 8) + (a);   
+  rgb = rgb / 255.0;
+  return rgb;
+}
 
 
 
