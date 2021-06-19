@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pathlib
 
-# Pandas dataframes
+# Pandas dataframess
 import pandas as pd
 
 # Create dataframe using dataset
