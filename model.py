@@ -163,3 +163,17 @@ def plot_value_array(i, predictions_array, true_label):
 # plot_value_array(i, predictions_single[0], test_labels.iloc[i].item())
 # _ = plt.xticks(range(26), class_names, rotation=45)
 
+# hist = model.fit(newTrain, train_labels, epochs=10)
+# plt.figure()
+# plt.ylabel("Loss (training and validation)")
+# plt.xlabel("Training Steps")
+# plt.ylim([0,2])
+# plt.plot(hist["loss"])
+# plt.plot(hist["val_loss"])
+
+# plt.figure()
+# plt.ylabel("Accuracy (training and validation)")
+# plt.xlabel("Training Steps")
+# plt.ylim([0,1])
+# plt.plot(hist["accuracy"])
+# plt.plot(hist["val_accuracy"])

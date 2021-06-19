@@ -3,6 +3,9 @@ let net;
 // CHANGE this url eventually
 const model = await tf.loadLayersModel('http://127.0.0.1:5500/model.json');
 
+model.compile({optimizer:'adam',
+              loss:'categoricalCrossentropy',
+              metrics:['accuracy']});
 // async function app() {
 //   console.log('Loading mobilenet..');
 //   // Load the model.
@@ -18,8 +21,16 @@ const model = await tf.loadLayersModel('http://127.0.0.1:5500/model.json');
 const class_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 
 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
+
+
 document.getElementById("butt").addEventListener("click", makePrediction);
 
+document.getElementById("correct").addEventListener('click', addCorrect);
+document.getElementById("wrong").addEventListener('click', addWrong);
+
+
+var tensor;
+var index;
 
 // https://enlight.nyc/projects/web-paint
 var srcCanvas = document.getElementById("src");
@@ -72,6 +83,9 @@ function eraseFunction() {
   destCtx.clearRect(0, 0, destCanvas.width, destCanvas.height);
   //destCtx.restore();
   srcCtx.clearRect(0, 0, srcCanvas.width, srcCanvas.height);
+  index = null;
+  tensor = null;
+  document.getElementById("pred").innerHTML = "Predictions: ";
   
 }
 
@@ -93,25 +107,66 @@ function resize() {
 
 }
 
+
 function makePrediction() {
 
   var destImageData = resize();
-  var tensor = tf.tensor(processImgData(destImageData.data), [1, 784]);
+  tensor = tf.tensor(processImgData(destImageData.data), [1, 784]);
   var prediction = model.predict(tensor);
   var jsArray = prediction.dataSync();
  
   const max = Math.max(...jsArray);
-  var index;
   for (var i = 0; i < 25; i++) {
     if (jsArray[i] == max) {
       index = i;
     }
   }
+
+  
   // console.log(tf.argMax(prediction, 0).print()); <-- figure out why this no work
   console.log(class_names[index]);
-  document.getElementById("pred").innerHTML = class_names[index];
+  document.getElementById("pred").innerHTML = "Predictions: "+ class_names[index];
+  
+
+  // test_loss, test_acc = model.evaluate(newTest,  test_labels, verbose=2)
+  //print('\nTest accuracy:', test_acc);
 }
 
+async function addCorrect() {
+
+  var label = new Array(26).fill(0);
+  label[index] = 1;
+
+  model.fit(tensor, tf.tensor(label, [1, 26]), {epochs:10,  callbacks: {onBatchEnd}}).then(
+    info => {console.log('Final Accuracy', info.history.acc);}
+);
+   await model.save('localstorage://model');
+
+   eraseFunction();
+}
+
+async function addWrong() {
+  //wrong answer get input
+  console.log(index);
+  var wrongChar = document.getElementById("input").value;
+  console.log(wrongChar);
+ 
+  for (var i = 0; i < 26; i++) {
+    if (wrongChar == class_names[i]) {index= i; break;}
+  }
+
+  var label = new Array(26).fill(0);
+  label[index] = 1;
+
+  model.fit(tensor, tf.tensor(label, [1, 26]), {epochs:10,  callbacks: {onBatchEnd}}).then(
+    info => {console.log('Final Accuracy', info.history.acc);}
+);
+  await model.save('localstorage://model');
+}
+
+function onBatchEnd(batch, logs) {
+  console.log('Accuracy', logs.acc);
+}
 
 function processImgData(imgData) {
   var imgArray = []; // want a 784-long array
@@ -126,6 +181,7 @@ function processImgData(imgData) {
   return imgArray;
 
 }
+
 
 // advice from: https://stackoverflow.com/questions/17945972/converting-rgba-values-into-one-integer-in-javascript
 function revertRGBA(red, green, blue, alpha) {
