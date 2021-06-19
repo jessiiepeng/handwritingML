@@ -31,10 +31,12 @@ var destCtx = $("#dest")[0].getContext("2d");
 // initialize position as 0,0
 var pos = { x: 0, y: 0 };
 
-// new position from mouse events
+// new position from mouse events https://stackoverflow.com/questions/3234256/find-mouse-position-relative-to-element/42111623#42111623
+// BUG: clicking dots (position doesn't change or is same) doesn't work
 function setPosition(e) {
-  pos.x = e.clientX;
-  pos.y = e.clientY;
+  var rect = e.target.getBoundingClientRect();
+  pos.x = e.clientX - rect.left;
+  pos.y = e.clientY - rect.top;
 }
 
 function draw(e) {
